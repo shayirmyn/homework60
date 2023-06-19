@@ -29,7 +29,7 @@ const Get = () => {
                     console.log('second mount')
                 }
             }
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(interval);
 
