@@ -10,25 +10,29 @@ const Get = () => {
         const responce = await fetch(url);
         const parseResponce = await responce.json();
         setMessages(parseResponce);
+        console.log('first mount');
     };
 
     useEffect(() => {
         fetchData().catch(error => console.error(error));
-        if (messages.length > 0) {
-            let lastDateTime = messages[messages.length - 1].datetime;
-            setInterval(async () => {
-                const dateTimeRequest = await fetch(`${url}?datetime=${lastDateTime}`);
-                const parseDateTimeRequest = await dateTimeRequest.json();
+    }, []);
 
-                if (parseDateTimeRequest.length > 0) {
-                    setMessages( prevState => [...prevState, parseDateTimeRequest]);
-                } else {
-                    console.log("nothing!!!")
+
+    useEffect(() => {
+        let lastDateTime = messages.length > 0 ? messages[messages.length - 1].datetime : '';
+        let interval = setInterval(async () => {
+            if (lastDateTime) {
+                const response = await fetch(`${url}?datetime=${lastDateTime}`);
+                const messages = await response.json();
+                if (messages.length > 0) {
+                    setMessages(prevState => [...prevState, ...messages]);
+                    console.log('second mount')
                 }
+            }
+        }, 3000);
 
-                lastDateTime = parseDateTimeRequest[parseDateTimeRequest.length - 1].datetime;
-            }, 3000);
-        }
+        return () => clearInterval(interval);
+
     }, [messages]);
 
     return (
@@ -36,7 +40,7 @@ const Get = () => {
             <div className="container2">
                 <div>
                     {
-                        messages.length < 1 ? <h5>Please send something to show..</h5> :
+                        messages.length < 1 ? <h5>oops, please wait for a minute</h5> :
                             messages.map((message: IMessages) => (
                                 <div className="divInfo" key={message.datetime}>
                                     <p className="authorName"><strong>author:</strong> {message.author}</p>
